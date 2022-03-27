@@ -6,7 +6,7 @@ possibleScripts = "PossibleScripts:" + \
         "\n\tnew-proj"
 
 usageStrs = {
-    "yt": "Usage: yt [-h] <script> <scriptopts>\n" + possibleScripts,
+    "yt": "Usage: yt [-h | --help] <script> <scriptopts>\n" + possibleScripts,
     "new-proj": "Usage: yt new-proj " + \
             "[-h | --help] " + \
             "{-n <projName> | --projName=<projName>} " + \
@@ -20,6 +20,22 @@ usageStrs = {
             "Sets the YouTube video root directory. Default: ~/Videos/YouTube/sources/" + \
             "\n\nThe new-proj script will create the common folder " + \
             "structure at the root directory with the provided project name",
+    "transcode-proj": "Usage: yt transcode-proj " + \
+            "[-h | --help] " + \
+            "{-n <projName> | --projName=<projName>} " + \
+            "[-v | --verbose] " + \
+            "[-r <videoRootDir> | --videoRootDir=<videoRootDir> ] " + \
+            "[-m | --mock ] " + \
+            "\n\nExplanation of arguments:" + \
+            "\n\t-h | --help:\n\t\tPrint the help string and exit" + \
+            "\n\t-n <projName> | --projName=<projName>:\n\t\t" +\ 
+            "The name of the project for which to transcode source footage. Mandatory argument." + \
+            "\n\t-v | --verbose:\n\t\tPrints debug output during script execution" + \
+            "\n\t-r <videoRootDir> | --videoRootDir=<videoRootDir>:\n\t\t" + \
+            "Sets the YouTube video root directory. Default: ~/Videos/YouTube/sources/" + \
+            "\n\t-m | --mock:\n\t\tPrints out the transcode command without actuall running it" + \
+            "\n\nThe transcode-proj script will transcode all the files in the " + \
+            "projName/video/ folder.",
 }
 
 errStrs = {
@@ -119,15 +135,34 @@ class NewProjScript( BaseScript ):
             print( "Finished making the folder structure for the new project!" )
 
 
+
+class TranscodeProjScript( BaseScript ):
+    def __init__( self ):
+        # In this case, need to add some extra getopt and cfg parameters.
+        self.short_opt += "m"
+        self.long_opt.append( "mock" )
+        self.cfg[ "mock" ] = False
+
+    def parseOpts( self, scriptArgs ):
+        # TODO: Implement the opt parser
+        pass
+
+    def execScript( self ):
+        # TODO: Implement the script
+        pass
+
+
 def whichScript( argv ):
     if len( argv ) == 0:
         print( errStrs[ "noScriptName" ] )
         sys.exit( 1 )
-    elif argv[ 0 ] == "-h":
+    elif argv[ 0 ] == "-h" or argv[ 0 ] == "--help":
         print( helpStrs[ "whichScript" ] )
         sys.exit()
     elif argv[ 0 ] == "new-proj":
         return NewProjScript()
+    elif argv[ 0 ] == "transcode-proj":
+        return TranscodeProjScript()
     else:
         print( errStrs[ "whichScriptUnrecognizedArg" ] )
         sys.exit( 1 )
