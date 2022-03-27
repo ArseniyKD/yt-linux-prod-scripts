@@ -2,8 +2,9 @@
 
 import sys, getopt, os
 
-possibleScripts = "PossibleScripts:" + \
-        "\n\tnew-proj"
+possibleScripts = "Possible scripts:" + \
+        "\n\tnew-proj" + \
+        "\n\ttranscode-proj"
 
 usageStrs = {
     "yt": "Usage: yt [-h | --help] <script> <scriptopts>\n" + possibleScripts,
@@ -28,7 +29,7 @@ usageStrs = {
             "[-m | --mock ] " + \
             "\n\nExplanation of arguments:" + \
             "\n\t-h | --help:\n\t\tPrint the help string and exit" + \
-            "\n\t-n <projName> | --projName=<projName>:\n\t\t" +\ 
+            "\n\t-n <projName> | --projName=<projName>:\n\t\t" + \
             "The name of the project for which to transcode source footage. Mandatory argument." + \
             "\n\t-v | --verbose:\n\t\tPrints debug output during script execution" + \
             "\n\t-r <videoRootDir> | --videoRootDir=<videoRootDir>:\n\t\t" + \
@@ -39,19 +40,12 @@ usageStrs = {
 }
 
 errStrs = {
-    "noScriptName": "Error: did not provide script name.\nPossible options:" + \
-            "\n\tnew-proj",
+    "noScriptName": "Error: did not provide script name.\nPossible options:" + possibleScripts,
     "notImplErr": "Error: calling an unimplemented function",
     "whichScriptUnrecognizedArg": "Error: Unrecognized argument to yt.\n" + usageStrs[ "yt" ],
     "getoptFailure": "Error: getopt failed in the parseOpt function! Error message:",
     "new-projNoProj": "Error: project name not provided to the new-proj script!",
     "new-projProjExists": "Error: project with this name already exists!",
-}
-
-helpStrs = {
-    "whichScript": "Usage: yt [-h] <script> <scriptopts>.\n" + \
-            "Possible scripts:" + \
-            "\n\tnew-proj",
 }
 
 class BaseScript( object ):
@@ -157,7 +151,7 @@ def whichScript( argv ):
         print( errStrs[ "noScriptName" ] )
         sys.exit( 1 )
     elif argv[ 0 ] == "-h" or argv[ 0 ] == "--help":
-        print( helpStrs[ "whichScript" ] )
+        print( usageStrs[ "yt" ] )
         sys.exit()
     elif argv[ 0 ] == "new-proj":
         return NewProjScript()
