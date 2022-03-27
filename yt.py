@@ -46,7 +46,9 @@ errStrs = {
     "getoptFailure": "Error: getopt failed in the parseOpt function! Error message:",
     "new-projNoProj": "Error: project name not provided to the new-proj script!",
     "new-projProjExists": "Error: project with this name already exists!",
+    "transcode-projNoProj": "Error: project name not provided to the transcode-proj script!",
 }
+
 
 class BaseScript( object ):
     cfg = {
@@ -129,7 +131,6 @@ class NewProjScript( BaseScript ):
             print( "Finished making the folder structure for the new project!" )
 
 
-
 class TranscodeProjScript( BaseScript ):
     def __init__( self ):
         # In this case, need to add some extra getopt and cfg parameters.
@@ -138,8 +139,33 @@ class TranscodeProjScript( BaseScript ):
         self.cfg[ "mock" ] = False
 
     def parseOpts( self, scriptArgs ):
-        # TODO: Implement the opt parser
-        pass
+        try:
+            opts, args = getopt.getopt(
+                    scriptArgs, self.short_opt, self.long_opt )
+        except getopt.GetoptError as err:
+            print( errStrs[ "getoptFailure" ] )
+            print( err )
+            print( usageStrs[ "transcode-proj" ] )
+            sys.exit( 1 )
+
+        for opt, arg in opts:
+            if opt in ( "-h", "--help" ):
+                print( usageStrs[ "transcode-proj" ] )
+                sys.exit()
+            elif opt in ( "-n", "--projName" ):
+                self.cfg[ "projName" ] = arg
+            elif opt in ( "-r", "--videoRootDir" ):
+                self.cfg[ "videoRootDir" ] = arg
+            elif opt in ( "-v", "--verbose" ):
+                self.cfg[ "verbose" ] = True
+            elif opt in ( "-m", "--mock" ):
+                self.cfg[ "mock" ] = True
+        
+        if self.cfg[ "projName" ] == "":
+            print( errStrs[ "transcode-projNoProj" ] )
+            print( usageStrs[ "transcode-proj" ] )
+            sys.exit( 1 )
+
 
     def execScript( self ):
         # TODO: Implement the script
