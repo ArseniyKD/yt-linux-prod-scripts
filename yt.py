@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, getopt
+import sys, getopt, os
 
 possibleScripts = "PossibleScripts:" + \
         "\n\tnew-proj"
@@ -29,6 +29,7 @@ errStrs = {
     "whichScriptUnrecognizedArg": "Error: Unrecognized argument to yt.\n" + usageStrs[ "yt" ],
     "getoptFailure": "Error: getopt failed in the parseOpt function! Error message:",
     "new-projNoProj": "Error: project name not provided to the new-proj script!",
+    "new-projProjExists": "Error: project with this name already exists!",
 }
 
 helpStrs = {
@@ -92,8 +93,30 @@ class NewProjScript( BaseScript ):
             
 
     def execScript( self ):
-        # TODO: Implement the script exec
-        print( "Executing new-proj script with config: ", self.cfg )
+        if self.cfg[ "verbose" ]:
+            print( "Executing new-proj script with config: ", self.cfg )
+        
+        projPath = os.path.join( 
+                self.cfg[ "videoRootDir" ], self.cfg[ "projName" ] )
+
+        if self.cfg[ "verbose" ]:
+            print( "About to make project path: ", projPath )
+
+        try:
+            os.makedirs( projPath )
+        except FileExistsError:
+            print( errStrs[ "new-projProjExists" ] )
+            print( "Failed path: ", projPath )
+            sys.exit( 1 )
+
+        for subFolder in [ "audio", "photo", "video" ]:
+            projSubPath = os.path.join( projPath, subFolder )
+            if self.cfg[ "verbose" ]:
+                print( "About to make project sub-path: ", projSubPath )
+            os.makedirs( projSubPath )
+
+        if self.cfg[ "verbose" ]:
+            print( "Finished making the folder structure for the new project!" )
 
 
 def whichScript( argv ):
