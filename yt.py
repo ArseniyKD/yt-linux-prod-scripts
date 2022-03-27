@@ -47,6 +47,9 @@ errStrs = {
     "new-projNoProj": "Error: project name not provided to the new-proj script!",
     "new-projProjExists": "Error: project with this name already exists!",
     "transcode-projNoProj": "Error: project name not provided to the transcode-proj script!",
+    "transcode-projAlreadyTranscoded": "Error: attempting to transcode the " + \
+            "files for a project where the transcode already succeeded once!",
+    "transcode-projNoVideoFolder": "Error: no video/ folder detected for project in transcode-proj script!",
 }
 
 
@@ -168,8 +171,69 @@ class TranscodeProjScript( BaseScript ):
 
 
     def execScript( self ):
-        # TODO: Implement the script
-        pass
+        if self.cfg[ "verbose" ]:
+            print( "Executing transcode-proj script with config:", self.cfg )
+
+        projPath = os.path.join(
+                self.cfg[ "videoRootDir" ], self.cfg[ "projName" ] )
+        if not os.path.exists( projPath ):
+            print( errStrs[ "transcode-projNoProj" ] )
+            print( "Project name provided:", self.cfg[ "projName" ] )
+            sys.exit( 1 )
+        videoPath = os.path.join( projPath, "video" )
+        if not os.path.exists( videoPath ):
+            print( errStrs[ "transcode-projNoVideoFolder" ] )
+            print( "Project name provided:", self.cfg[ "projName" ] )
+            sys.exit( 1 )
+
+        if self.cfg[ "verbose" ]:
+            print( "About to start transcoding logic at video path: ", videoPath )
+        
+        filesAtVideoPath = os.listdir( videoPath )
+        
+        if ".transcoded" in filesAtVideoPath:
+            print( errStrs[ "transcode-projAlreadyTranscoded" ] )
+            print( "Project:", self.cfg[ "projName" ], "\t.transcode file found at path: ", videoPath )
+            sys.exit( 1 )
+        
+        if self.cfg[ "verbose" ]:
+            print( "Files at path:", filesAtVideoPath )
+
+        outputFiles = []
+        for file in filesAtVideoPath:
+            # Assumption: file has no dots in the name aside from the one before
+            # the file type extension. All those files are ".mp4"s
+            outputFiles.append(
+                    file.split( "." )[ 0 ] + "_transcoded.mov" )
+
+        if self.cfg[ "verbose" ]:
+            print( "Output files: ", outputFiles )
+
+        numFiles = len( filesAtVideoPath )
+
+        for i in range( numFiles ):
+            cmdTemplate = "ffmpeg -i {inp} -c:v dnxhd -profile:v 3 -c:a pcm_s24le {outp}"
+            cmdToExec = cmdTemplate.format(
+                    inp=filesAtVideoPath[ i ],
+                    outp=outputFiles[ i ] )
+            # I need a "progress" bar
+            print( "[" + str( i + 1 ) + "/" + str( numFiles ) + "] Converting " + \
+                    filesAtVideoPath[ i ] + " to " + outputFiles[ i ] )
+            if self.cfg[ "mock" ]:
+                print( cmdToExec )
+            else:
+                #TODO: implement the actual cmd execution
+                pass
+
+        if not self.cfg[ "mock" ]:
+            # Need to create a .transcoded file at the directory to not
+            # re-transcode by accident, it's a very expensive operation
+            transcodedFilePath = os.path.join( videoPath, ".transcoded" )
+            if self.cfg[ "verbose" ]:
+                print( "About to create the transcode file at path: ", transcodedFilePath )
+            open( transcodedFilePath, 'a' ).close()
+        
+        print( "Done transcoding all the video sources!" )
 
 
 def whichScript( argv ):
