@@ -56,7 +56,7 @@ errStrs = {
 class BaseScript( object ):
     cfg = {
         "projName": "",
-        "videoRootDir": "~/Videos/YouTube/sources/",
+        "videoRootDir": "/home/arseniykd/Videos/YouTube/sources/",
         "verbose": False,
     }
     short_opt = "hn:r:v"
@@ -214,16 +214,15 @@ class TranscodeProjScript( BaseScript ):
         for i in range( numFiles ):
             cmdTemplate = "ffmpeg -i {inp} -c:v dnxhd -profile:v 3 -c:a pcm_s24le {outp}"
             cmdToExec = cmdTemplate.format(
-                    inp=filesAtVideoPath[ i ],
-                    outp=outputFiles[ i ] )
+                    inp=os.path.join( videoPath, filesAtVideoPath[ i ] ),
+                    outp=os.path.join( videoPath, outputFiles[ i ] ) )
             # I need a "progress" bar
             print( "[" + str( i + 1 ) + "/" + str( numFiles ) + "] Converting " + \
                     filesAtVideoPath[ i ] + " to " + outputFiles[ i ] )
             if self.cfg[ "mock" ]:
                 print( cmdToExec )
             else:
-                #TODO: implement the actual cmd execution
-                pass
+                os.system( cmdToExec )
 
         if not self.cfg[ "mock" ]:
             # Need to create a .transcoded file at the directory to not
