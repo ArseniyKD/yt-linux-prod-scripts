@@ -27,6 +27,7 @@ usageStrs = {
             "[-v | --verbose] " + \
             "[-r <videoRootDir> | --videoRootDir=<videoRootDir> ] " + \
             "[-m | --mock ] " + \
+            "[-p | --pruneDuplicates ] " + \
             "\n\nExplanation of arguments:" + \
             "\n\t-h | --help:\n\t\tPrint the help string and exit" + \
             "\n\t-n <projName> | --projName=<projName>:\n\t\t" + \
@@ -35,6 +36,8 @@ usageStrs = {
             "\n\t-r <videoRootDir> | --videoRootDir=<videoRootDir>:\n\t\t" + \
             "Sets the YouTube video root directory. Default: ~/Videos/YouTube/sources/" + \
             "\n\t-m | --mock:\n\t\tPrints out the transcode command without actuall running it" + \
+            "\n\t-p | --pruneDuplicates:\n\t\tRuns the ffmpeg command with an option to drop " + \
+            "duplicate frames from the output. Only run with this flag if ffmped dupes frames." + \
             "\n\nThe transcode-proj script will transcode all the files in the " + \
             "projName/video/ folder.",
 }
@@ -137,9 +140,11 @@ class NewProjScript( BaseScript ):
 class TranscodeProjScript( BaseScript ):
     def __init__( self ):
         # In this case, need to add some extra getopt and cfg parameters.
-        self.short_opt += "m"
+        self.short_opt += "mp"
         self.long_opt.append( "mock" )
+        self.long_opt.append( "pruneDuplicates" )
         self.cfg[ "mock" ] = False
+        self.cfg[ "pruneDuplicates" ] = False
 
     def parseOpts( self, scriptArgs ):
         try:
@@ -163,6 +168,8 @@ class TranscodeProjScript( BaseScript ):
                 self.cfg[ "verbose" ] = True
             elif opt in ( "-m", "--mock" ):
                 self.cfg[ "mock" ] = True
+            elif opt in ( "-p", "--pruneDuplicates" ):
+                self.cfg[ "pruneDuplicates" ] = True
         
         if self.cfg[ "projName" ] == "":
             print( errStrs[ "transcode-projNoProj" ] )
@@ -212,9 +219,11 @@ class TranscodeProjScript( BaseScript ):
         numFiles = len( filesAtVideoPath )
 
         for i in range( numFiles ):
-            cmdTemplate = "ffmpeg -i {inp} -c:v dnxhd -profile:v 3 -c:a pcm_s24le {outp}"
+            rmDupedFramesCmd = "-vsync 2" if self.cfg[ "pruneDuplicates" ] else ""
+            cmdTemplate = "ffmpeg -i {inp} -c:v dnxhd -profile:v 3 -c:a pcm_s24le {dedup} {outp}"
             cmdToExec = cmdTemplate.format(
                     inp=os.path.join( videoPath, filesAtVideoPath[ i ] ),
+                    dedup=rmDupedFramesCmd,
                     outp=os.path.join( videoPath, outputFiles[ i ] ) )
             # I need a "progress" bar
             print( "[" + str( i + 1 ) + "/" + str( numFiles ) + "] Converting " + \
